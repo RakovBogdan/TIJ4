@@ -38,9 +38,11 @@ public class Ex08 {
         if (declaredFields.length != 0) {
             System.out.println(clazz.getName() + " fields:");
             for (Field field : declaredFields) {
-                if (!displayedClasses.contains(field.getDeclaringClass())) {
-                    printClassesRecursively(field.getDeclaringClass(), hierarchyPlace + 1);
-                    displayedClasses.add(field.getDeclaringClass());
+                System.out.println("field: " + field);
+                Class fieldType = field.getType();
+                if (!displayedClasses.contains(fieldType)) {
+                    printClassesRecursively(fieldType , hierarchyPlace + 1);
+                    displayedClasses.add(fieldType);
                 }
             }
         }
