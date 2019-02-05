@@ -42,7 +42,6 @@ public class Ex08 {
                 Class fieldType = field.getType();
                 if (!displayedClasses.contains(fieldType)) {
                     printClassesRecursively(fieldType , hierarchyPlace + 1);
-                    displayedClasses.add(fieldType);
                 }
             }
         }
