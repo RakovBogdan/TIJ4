@@ -1,12 +1,12 @@
 package org.bohdanrakov.rtti;
 
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.List;
 
 abstract class Shape {
     private boolean highlighted;
-
-    public abstract String toString();
 
     public boolean isHighlighted() {
         return highlighted;
@@ -17,46 +17,32 @@ abstract class Shape {
     }
 
     void draw() {
-        System.out.println(this + ".draw()");
+        System.out.println(this + " draw()");
     }
 
     void rotate() {
-        System.out.println(this + ".rotate()");
+        System.out.println(this + " rotate()");
     }
 
-
+    @Override
+    public String toString() {
+        return getClass().getName() + ", highlighted: " + highlighted;
+    }
 }
 
 class Triangle extends Shape {
-
-    @Override
-    public String toString() {
-        return "Triangle" + ", isHighlighted: " + isHighlighted();
-    }
 }
 
 class Square extends Shape {
-    @Override
-    public String toString() {
-        return "Square" + ", isHighlighted: " + isHighlighted();
-    }
 }
 
 class Circle extends Shape {
     @Override
-    public String toString() {
-        return "Circle" + ", isHighlighted: " + isHighlighted();
+    void rotate() {
     }
-
-    @Override
-    void rotate() { }
 }
 
 class Rhomboid extends Shape {
-    @Override
-    public String toString() {
-        return "Rhomboid" + ", isHighlighted: " + isHighlighted();
-    }
 }
 
 public class Shapes {
@@ -69,26 +55,66 @@ public class Shapes {
         }
     }
 
+    static void removeHighlightByType(Class shapeClass, List<Shape> shapes) {
+        for (Shape shape : shapes) {
+            if (shapeClass.isInstance(shape)) {
+                shape.setHighlighted(false);
+            }
+        }
+    }
+
+    static void forEach(Class type, String methodName, List<Shape> shapes, Object... args) {
+        Method method = null;
+
+        try {
+            method = type.getMethod(methodName, Boolean.TYPE);
+        } catch (NoSuchMethodException e) {
+            throw new RuntimeException(e);
+        }
+
+        try {
+            for (Shape shape : shapes) {
+                if (type.isInstance(shape)) {
+                    method.invoke(shape, args);
+                }
+            }
+        } catch (IllegalAccessException | InvocationTargetException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    static void highlightByType2(Class type, List<Shape> shapes) {
+        forEach(type, "setHighlighted", shapes, true);
+    }
+
+    static void removeHighlightByType2(Class type, List<Shape> shapes) {
+        forEach(type, "setHighlighted", shapes, false);
+    }
+
     public static void main(String[] args) {
         List<Shape> shapes = new ArrayList<>();
         shapes.add(new Triangle());
+        shapes.add(new Triangle());
+        shapes.add(new Triangle());
         shapes.add(new Circle());
+        shapes.add(new Circle());
+        shapes.add(new Square());
+        shapes.add(new Square());
         shapes.add(new Square());
         shapes.add(new Rhomboid());
 
-        for (Shape shape : shapes) {
-            System.out.println(shape);
-        }
+        printShapes(shapes);
 
         for (Shape shape : shapes) {
             shape.rotate();
         }
 
         highlightByType(Triangle.class, shapes);
-
-        for (Shape shape : shapes) {
-            System.out.println(shape);
-        }
+        highlightByType2(Rhomboid.class, shapes);
+        printShapes(shapes);
+        removeHighlightByType(Triangle.class, shapes);
+        removeHighlightByType2(Square.class, shapes);
+        printShapes(shapes);
 
         Class clazz = null;
 
@@ -103,5 +129,12 @@ public class Shapes {
         } else {
             System.out.println("Shape is Not a circle");
         }
+    }
+
+    private static void printShapes(List<Shape> shapes) {
+        for (Shape shape : shapes) {
+            System.out.println(shape);
+        }
+        System.out.println("--------------------");
     }
 }
